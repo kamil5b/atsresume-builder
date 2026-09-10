@@ -1,4 +1,7 @@
-import { MdPictureAsPdf } from "react-icons/md";
+import React, {useState, useEffect} from "react";
+import { MdPictureAsPdf, MdSettings } from "react-icons/md";
+
+const PADDING_KEY = "atsresume_print_padding";
 
 const WinPrint = () => {
   const [padding, setPadding] = useState(() => {
