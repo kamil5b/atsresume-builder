@@ -1,17 +1,7 @@
 import React, {useContext} from 'react';
 import DateRange from "../../../../utility/DateRange";
-import Link from "next/link";
-import dynamic from "next/dynamic";
+import {Droppable, Draggable} from "react-beautiful-dnd";
 import {ResumeContext} from "../../../../builder";
-
-const Droppable = dynamic(
-  () => import("react-beautiful-dnd").then((mod) => mod.Droppable),
-  {ssr: false}
-);
-const Draggable = dynamic(
-  () => import("react-beautiful-dnd").then((mod) => mod.Draggable),
-  {ssr: false}
-);
 
 const Projects = () => {
   const {resumeData} = useContext(ResumeContext);
@@ -51,14 +41,14 @@ const Projects = () => {
                     />
                   </div>
 
-                  <Link
+                  <a
                     href={item.link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="content"
                   >
                     {item.link}
-                  </Link>
+                  </a>
                   <p className="content">{item.description}</p>
 
                   <Droppable

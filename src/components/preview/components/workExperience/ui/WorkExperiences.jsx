@@ -1,12 +1,7 @@
 import React, {useContext} from 'react';
-import dynamic from "next/dynamic";
+import {Droppable} from "react-beautiful-dnd";
 import {ResumeContext} from "../../../../builder";
 import WorkExperience from "../components/WorkExperience";
-
-const Droppable = dynamic(
-  () => import("react-beautiful-dnd").then((mod) => mod.Droppable),
-  {ssr: false}
-);
 
 const WorkExperiences = () => {
   const {resumeData} = useContext(ResumeContext);

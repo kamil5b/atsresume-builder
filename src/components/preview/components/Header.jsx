@@ -1,4 +1,3 @@
-import Image from "next/image";
 import ContactInfo from "../components/ContactInfo";
 import { MdPhone, MdEmail, MdLocationOn } from "react-icons/md";
 
@@ -7,7 +6,7 @@ const Header = ({ resumeData, icons }) => {
     <div className="f-col items-center mb-1">
       {resumeData.profilePicture.length > 0 && (
         <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-fuchsia-700">
-          <Image
+          <img
             src={resumeData.profilePicture}
             alt="profile"
             width={100}
