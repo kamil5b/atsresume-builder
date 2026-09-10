@@ -116,21 +116,30 @@
 }
 
 @media print {
-    .exclude-print {
-        display: none;
+    * {
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
-    .rm-padding-print {
-        padding: 0;
+    .exclude-print {
+        display: none !important;
     }
 
     @page {
         size: A4;
-        margin: 10mm;
+        margin: 0;
+    }
+
+    .a4-wrapper {
+        padding: var(--print-top, 10mm) var(--print-side, 15mm) var(--print-top, 10mm) var(--print-side, 15mm) !important;
+        box-sizing: border-box !important;
     }
 
     .preview {
         overflow-y: visible !important;
+        max-width: none !important;
+        width: 100% !important;
+        position: static !important;
     }
 
     .preview::after {
