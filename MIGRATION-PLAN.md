@@ -9,6 +9,7 @@
 | Styling | Tailwind CSS 3.2.4 | Tailwind CSS (native integration) |
 | Build Output | Standalone server | Static HTML (GitHub Pages) |
 | Deployment | Vercel / Docker | GitHub Pages |
+| Package Manager | Yarn | pnpm |
 
 ---
 
@@ -27,6 +28,8 @@ src/
 │   ├── meta/Meta.js       # SEO (uses next/head)
 │   ├── preview/           # Resume preview components
 │   ├── form/              # Resume form components
+│   │   └── components/
+│   │       └── LoadUnload.jsx  # Current load/save to file
 │   └── utility/           # Helpers (WinPrint, DefaultResumeData, DateRange)
 ├── hooks/
 │   └── useKeyboardShortcut.jsx
@@ -60,14 +63,242 @@ src/
 
 ---
 
+## New Features to Implement
+
+### Feature 1: Save on Cache (localStorage)
+
+Save resume data to browser's localStorage for persistence across sessions.
+
+#### Implementation:
+
+**File: `src/components/utility/cacheUtils.js`**
+```js
+const CACHE_KEY = 'atsresume_data';
+
+export const saveToCache = (resumeData) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(resumeData));
+    return true;
+  } catch (error) {
+    console.error('Failed to save to cache:', error);
+    return false;
+  }
+};
+
+export const loadFromCache = () => {
+  try {
+    const data = localStorage.getItem(CACHE_KEY);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error('Failed to load from cache:', error);
+    return null;
+  }
+};
+
+export const clearCache = () => {
+  try {
+    localStorage.removeItem(CACHE_KEY);
+    return true;
+  } catch (error) {
+    console.error('Failed to clear cache:', error);
+    return false;
+  }
+};
+```
+
+**File: `src/components/builder.jsx` (modified)**
+```jsx
+import { useState, useEffect } from "react";
+import DefaultResumeData from "../components/utility/DefaultResumeData";
+import { saveToCache, loadFromCache } from "../components/utility/cacheUtils";
+
+export default function Builder() {
+  // Load from cache on mount, fallback to default
+  const [resumeData, setResumeData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return loadFromCache() || DefaultResumeData;
+    }
+    return DefaultResumeData;
+  });
+
+  // Auto-save to cache when data changes
+  useEffect(() => {
+    saveToCache(resumeData);
+  }, [resumeData]);
+
+  // ... rest of component
+}
+```
+
+---
+
+### Feature 2: Clear All Button
+
+Clear all resume data and reset to empty state.
+
+#### Implementation:
+
+**File: `src/components/form/components/ActionButtons.jsx`**
+```jsx
+import React, { useContext } from "react";
+import { ResumeContext } from "../../builder";
+import { clearCache } from "../../utility/cacheUtils";
+import { FaTrash, FaUndo, FaSave } from "react-icons/fa";
+
+const ActionButtons = () => {
+  const { resumeData, setResumeData } = useContext(ResumeContext);
+
+  const handleClearAll = () => {
+    if (window.confirm('Are you sure you want to clear all resume data?')) {
+      setResumeData({
+        name: "",
+        position: "",
+        contactInformation: "",
+        email: "",
+        address: "",
+        profilePicture: "",
+        socialMedia: [],
+        summary: "",
+        education: [],
+        workExperience: [],
+        projects: [],
+        skills: [],
+        languages: [],
+        certifications: [],
+      });
+      clearCache();
+    }
+  };
+
+  const handleDefaultTemplate = () => {
+    if (window.confirm('Reset to default template? Current data will be lost.')) {
+      setResumeData(DefaultResumeData);
+    }
+  };
+
+  const handleSaveToCache = () => {
+    saveToCache(resumeData);
+    alert('Resume saved to browser cache!');
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2 mb-4 justify-center">
+      <button
+        onClick={handleSaveToCache}
+        className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        <FaSave /> Save
+      </button>
+      <button
+        onClick={handleClearAll}
+        className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      >
+        <FaTrash /> Clear All
+      </button>
+      <button
+        onClick={handleDefaultTemplate}
+        className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        <FaUndo /> Default Template
+      </button>
+    </div>
+  );
+};
+
+export default ActionButtons;
+```
+
+---
+
+### Feature 3: Default Template Button
+
+Reset resume data to the default template (DefaultResumeData).
+
+Already implemented in ActionButtons.jsx above.
+
+---
+
+### Updated LoadUnload Component
+
+**File: `src/components/form/components/LoadUnload.jsx` (modified)**
+```jsx
+import { FaCloudUploadAlt, FaCloudDownloadAlt } from "react-icons/fa";
+import React, { useContext } from "react";
+import { ResumeContext } from "../../builder";
+
+const LoadUnload = () => {
+  const { resumeData, setResumeData } = useContext(ResumeContext);
+
+  // load backup resume data from file
+  const handleLoad = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const resumeData = JSON.parse(event.target.result);
+      setResumeData(resumeData);
+    };
+    reader.readAsText(file);
+  };
+
+  // download resume data to file
+  const handleDownload = (data, filename, event) => {
+    event.preventDefault();
+    const jsonData = JSON.stringify(data);
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+  };
+
+  return (
+    <div className="flex flex-wrap gap-4 mb-2 justify-center">
+      <div className="inline-flex flex-row items-center gap-2">
+        <h2 className="text-[1.2rem] text-white">Import</h2>
+        <label className="p-2 text-white bg-fuchsia-700 rounded cursor-pointer">
+          <FaCloudUploadAlt className="text-[1.2rem] text-white" />
+          <input
+            aria-label="Load Data"
+            type="file"
+            className="hidden"
+            onChange={handleLoad}
+            accept=".json"
+          />
+        </label>
+      </div>
+      <div className="inline-flex flex-row items-center gap-2">
+        <h2 className="text-[1.2rem] text-white">Export</h2>
+        <button
+          aria-label="Save Data"
+          className="p-2 text-white bg-fuchsia-700 rounded"
+          onClick={(event) =>
+            handleDownload(
+              resumeData,
+              resumeData.name + " by ATSResume.json",
+              event
+            )
+          }
+        >
+          <FaCloudDownloadAlt className="text-[1.2rem] text-white" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default LoadUnload;
+```
+
+---
+
 ## Migration Steps
 
 ### Phase 1: Project Setup
 
 #### Step 1.1: Initialize Astro Project
 ```bash
-# Create new Astro project (in new directory or replace current)
-npm create astro@latest atsresume-astro
+# Create new Astro project
+pnpm create astro@latest atsresume-astro
 
 # Select: Empty (we'll migrate manually)
 # TypeScript: No (matching current JS codebase)
@@ -75,7 +306,7 @@ npm create astro@latest atsresume-astro
 
 #### Step 1.2: Install Integrations
 ```bash
-npx astro add react tailwind
+pnpm astro add react tailwind
 ```
 
 This installs:
@@ -85,8 +316,8 @@ This installs:
 
 #### Step 1.3: Install Additional Dependencies
 ```bash
-npm install react-beautiful-dnd react-icons react-highlight-menu
-npm install -D @types/react-beautiful-dnd  # Optional TypeScript types
+pnpm add react-beautiful-dnd react-icons react-highlight-menu
+pnpm add -D @types/react-beautiful-dnd  # Optional TypeScript types
 ```
 
 ---
@@ -144,13 +375,21 @@ src/
 │   └── index.astro            # Replaces app/page.jsx
 │   └── builder.astro          # Builder page (optional separate route)
 ├── components/
-│   ├── Builder.jsx            # Main React component (no changes needed)
+│   ├── Builder.jsx            # Main React component
 │   ├── FormCloseOpenBtn.jsx   # No changes needed
+│   ├── ActionButtons.jsx      # NEW: Save/Clear/Default buttons
 │   ├── Hero.astro             # Convert from JSX to Astro component
 │   ├── Meta.astro             # Convert from next/head to Astro
 │   ├── preview/               # All preview components (no changes)
 │   ├── form/                  # All form components (no changes)
-│   └── utility/               # All utility components (no changes)
+│   │   └── components/
+│   │       ├── LoadUnload.jsx # Updated: Import/Export labels
+│   │       └── ActionButtons.jsx  # NEW: Action buttons
+│   └── utility/               # All utility components
+│       ├── cacheUtils.js      # NEW: localStorage utilities
+│       ├── DefaultResumeData.jsx  # No changes
+│       ├── WinPrint.js        # No changes
+│       └── DateRange.jsx      # No changes
 ├── hooks/
 │   └── useKeyboardShortcut.jsx # No changes needed
 └── styles/
@@ -358,17 +597,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: 'pnpm'
       
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       
       - name: Build with Astro
-        run: npm run build
+        run: pnpm run build
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -402,7 +646,7 @@ jobs:
 - [ ] Document any custom configurations
 
 ### Phase 1: Setup
-- [ ] Initialize Astro project
+- [ ] Initialize Astro project with pnpm
 - [ ] Install React integration
 - [ ] Install Tailwind integration
 - [ ] Install additional dependencies
@@ -421,26 +665,37 @@ jobs:
 - [ ] Convert `layout.js` → `Layout.astro`
 - [ ] Convert `page.jsx` → `index.astro`
 - [ ] Convert `Meta.js` → inline in Layout
-- [ ] Update `builder.jsx` (remove next/dynamic)
+- [ ] Update `builder.jsx` (remove next/dynamic, add cache support)
 - [ ] Update `Preview.jsx` (remove next/dynamic)
 - [ ] Convert `Hero.jsx` → `Hero.astro` (if using)
 
-### Phase 5: Cleanup
+### Phase 5: New Features
+- [ ] Create `cacheUtils.js` for localStorage
+- [ ] Create `ActionButtons.jsx` with Save/Clear/Default
+- [ ] Update `builder.jsx` to auto-save to cache
+- [ ] Update `LoadUnload.jsx` with new labels
+- [ ] Integrate ActionButtons in Form component
+
+### Phase 6: Cleanup
 - [ ] Delete `next.config.js`
 - [ ] Delete `src/app/` directory
 - [ ] Delete `Dockerfile` and `docker-compose.yaml`
 - [ ] Update `.gitignore`
 
-### Phase 6: Testing
-- [ ] Run `npm run dev` locally
+### Phase 7: Testing
+- [ ] Run `pnpm dev` locally
 - [ ] Test all form inputs
 - [ ] Test drag-and-drop functionality
 - [ ] Test print functionality
 - [ ] Test responsive design
+- [ ] Test Save button (check localStorage)
+- [ ] Test Clear All button
+- [ ] Test Default Template button
+- [ ] Test cache persistence (refresh page)
 - [ ] Verify static build works
 
-### Phase 7: Deploy
-- [ ] Create GitHub Actions workflow
+### Phase 8: Deploy
+- [ ] Create GitHub Actions workflow with pnpm
 - [ ] Push to main branch
 - [ ] Verify deployment
 - [ ] Test live site
@@ -468,7 +723,11 @@ jobs:
 **Challenge:** FileReader API is browser-only
 **Solution:** Component is already client-side with `"use client"` equivalent
 
-### 5. Image Optimization
+### 5. localStorage SSR Issues
+**Challenge:** localStorage is browser-only, not available during SSR
+**Solution:** Check `typeof window !== 'undefined'` before accessing localStorage
+
+### 6. Image Optimization
 **Challenge:** Next.js Image component has different API
 **Solution:** Use Astro Image or standard `<img>` tags
 
@@ -487,13 +746,14 @@ If migration fails:
 
 | Phase | Duration | Notes |
 |-------|----------|-------|
-| Setup | 30 min | Initialize project, install deps |
+| Setup | 30 min | Initialize project, install deps with pnpm |
 | Configuration | 30 min | Astro config, Tailwind |
 | Restructure | 1 hour | Move files, update imports |
 | Component Migration | 2-3 hours | Main work, test each component |
-| Testing | 1-2 hours | Full testing cycle |
-| Deployment | 30 min | GitHub Actions setup |
-| **Total** | **5-7 hours** | Depends on issues encountered |
+| New Features | 1-2 hours | Cache, Clear, Default buttons |
+| Testing | 1-2 hours | Full testing cycle including new features |
+| Deployment | 30 min | GitHub Actions with pnpm |
+| **Total** | **6-9 hours** | Depends on issues encountered |
 
 ---
 
@@ -521,3 +781,4 @@ This requires only changing 2 lines in `next.config.js`.
 - [Astro React Integration](https://docs.astro.build/en/guides/integrations-guide/react/)
 - [Astro GitHub Pages Guide](https://docs.astro.build/en/guides/deploy/github/)
 - [Tailwind in Astro](https://docs.astro.build/en/guides/integrations-guide/tailwind/)
+- [pnpm Documentation](https://pnpm.io/)
