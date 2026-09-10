@@ -5,7 +5,7 @@ import tailwind from '@astrojs/tailwind';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://username.github.io',
+  site: 'https://kamil5b.github.io',
   base: '/atsresume-builder',
   output: 'static',
   integrations: [
