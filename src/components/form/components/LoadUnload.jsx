@@ -5,7 +5,7 @@ import {ResumeContext} from "../../builder";
 const LoadUnload = () => {
   const { resumeData, setResumeData } = useContext(ResumeContext);
 
-  // load backup resume data
+  // load backup resume data from file
   const handleLoad = (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -16,7 +16,7 @@ const LoadUnload = () => {
     reader.readAsText(file);
   };
 
-  // download resume data
+  // download resume data to file
   const handleDownload = (data, filename, event) => {
     event.preventDefault();
     const jsonData = JSON.stringify(data);
@@ -30,11 +30,11 @@ const LoadUnload = () => {
   return (
     <div className="flex flex-wrap gap-4 mb-2 justify-center">
       <div className="inline-flex flex-row items-center gap-2">
-        <h2 className="text-[1.2rem] text-white">Load Data</h2>
-        <label className="p-2 text-white bg-fuchsia-700 rounded cursor-pointer">
+        <h2 className="text-[1.2rem] text-white">Import</h2>
+        <label className="p-2 text-white bg-primary-700 rounded cursor-pointer">
           <FaCloudUploadAlt className="text-[1.2rem] text-white" />
           <input
-            aria-label="Load Data"
+            aria-label="Import Data"
             type="file"
             className="hidden"
             onChange={handleLoad}
@@ -43,10 +43,10 @@ const LoadUnload = () => {
         </label>
       </div>
       <div className="inline-flex flex-row items-center gap-2">
-        <h2 className="text-[1.2rem] text-white">Save Data</h2>
+        <h2 className="text-[1.2rem] text-white">Export</h2>
         <button
-          aria-label="Save Data"
-          className="p-2 text-white bg-fuchsia-700 rounded"
+          aria-label="Export Data"
+          className="p-2 text-white bg-primary-700 rounded"
           onClick={(event) =>
             handleDownload(
               resumeData,

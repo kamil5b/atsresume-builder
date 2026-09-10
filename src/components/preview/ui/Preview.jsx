@@ -3,21 +3,13 @@ import {FaFacebook, FaGithub, FaInstagram, FaLinkedin, FaTwitter, FaYoutube, FaT
 import {CgWebsite} from "react-icons/cg";
 import React, {useContext, useState} from "react";
 import {ResumeContext} from "../../builder";
-import dynamic from "next/dynamic";
+import {DragDropContext} from "react-beautiful-dnd";
 import ModalHighlightMenu from "../components/ModalHighlightMenu";
 import Header from "../components/Header";
 import LeftSide from "../components/LeftSide";
 import RightSide from "../components/RightSide";
 import A4PageWrapper from "../components/A4PageWrapper";
 import {onDragEndHandler} from "../utils/onDrugEndHandler";
-
-const DragDropContext = dynamic(
-  () =>
-    import("react-beautiful-dnd").then((mod) => {
-      return mod.DragDropContext;
-    }),
-  {ssr: false}
-);
 
 const Preview = () => {
   const {resumeData, setResumeData} = useContext(ResumeContext);

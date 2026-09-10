@@ -1,26 +1,29 @@
-"use client"
-
-import React, {createContext, useState} from "react";
-import Meta from "../components/meta/Meta";
+import React, {createContext, useState, useEffect} from "react";
 import FormCloseOpenBtn from "../components/FormCloseOpenBtn";
 import Preview from "../components/preview/ui/Preview";
 import DefaultResumeData from "../components/utility/DefaultResumeData";
-import dynamic from "next/dynamic";
+import WinPrint from "../components/utility/WinPrint";
 import Form from "../components/form/ui/Form";
+import { saveToCache, loadFromCache } from "../components/utility/cacheUtils";
 
 const ResumeContext = createContext(DefaultResumeData);
 
-// server side rendering false
-const Print = dynamic(() => import("../components/utility/WinPrint"), {
-  ssr: false,
-});
-
 export default function Builder() {
-  // resume data
-  const [resumeData, setResumeData] = useState(DefaultResumeData);
+  // resume data - load from cache or use default
+  const [resumeData, setResumeData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return loadFromCache() || DefaultResumeData;
+    }
+    return DefaultResumeData;
+  });
 
   // form hide/show
   const [formClose, setFormClose] = useState(false);
+
+  // auto-save to cache when data changes
+  useEffect(() => {
+    saveToCache(resumeData);
+  }, [resumeData]);
 
   // profile picture
   const handleProfilePicture = (e) => {
@@ -39,34 +42,26 @@ export default function Builder() {
 
   const handleChange = (e) => {
     setResumeData({...resumeData, [e.target.name]: e.target.value});
-    console.log(resumeData);
   };
 
   return (
-    <>
-      <ResumeContext.Provider
-        value={{
-          resumeData,
-          setResumeData,
-          handleProfilePicture,
-          handleChange,
-        }}
-      >
-        <Meta
-          title="ATSResume | Get hired with an ATS-optimized resume"
-          description="ATSResume is a cutting-edge resume builder that helps job seekers create a professional, ATS-friendly resume in minutes. Our platform uses the latest technology to analyze and optimize your resume for maximum visibility and success with applicant tracking systems. Say goodbye to frustration and wasted time spent on manual resume formatting. Create your winning resume with ATSResume today and get noticed by employers."
-          keywords="ATS-friendly, Resume optimization, Keyword-rich resume, Applicant Tracking System, ATS resume builder, ATS resume templates, ATS-compliant resume, ATS-optimized CV, ATS-friendly format, ATS resume tips, Resume writing services, Career guidance, Job search in India, Resume tips for India, Professional resume builder, Cover letter writing, Interview preparation, Job interview tips, Career growth, Online job applications, resume builder, free resume builder, resume ats, best free resume builder, resume creator, resume cv, resume design, resume editor, resume maker"
-        />
-        <div className="f-col gap-4 md:flex-row justify-evenly max-w-7xl md:mx-auto md:h-screen">
-          {!formClose && (
-            <Form/>
-          )}
-          <Preview/>
-        </div>
-        <FormCloseOpenBtn formClose={formClose} setFormClose={setFormClose}/>
-        <Print/>
-      </ResumeContext.Provider>
-    </>
+    <ResumeContext.Provider
+      value={{
+        resumeData,
+        setResumeData,
+        handleProfilePicture,
+        handleChange,
+      }}
+    >
+      <div className="f-col gap-4 md:flex-row justify-evenly max-w-7xl md:mx-auto md:h-screen">
+        {!formClose && (
+          <Form/>
+        )}
+        <Preview/>
+      </div>
+      <FormCloseOpenBtn formClose={formClose} setFormClose={setFormClose}/>
+      <WinPrint/>
+    </ResumeContext.Provider>
   );
 }
 export {ResumeContext};

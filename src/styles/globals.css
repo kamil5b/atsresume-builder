@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --primary-500: #d946ef;
+    --primary-600: #c026d3;
+    --primary-700: #a21caf;
+}
+
 @layer base {
     
     body {
@@ -17,11 +23,11 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        @apply bg-fuchsia-600;
+        background: var(--primary-600);
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        @apply bg-fuchsia-700;
+        background: var(--primary-700);
     }
 
     textarea, input:focus {
@@ -43,7 +49,8 @@
     }
 
     .profileInput{
-        @apply pi file:border-0 file:bg-fuchsia-500 file:text-white file:rounded-sm;
+        @apply pi file:border-0 file:text-white file:rounded-sm;
+        background: var(--primary-500);
     }
 
     .flex-col-gap-2{
@@ -73,6 +80,12 @@
     .editable{
         @apply hover:bg-gray-100 hover:cursor-text outline-none;
     }
+
+    .bg-primary-500 { background: var(--primary-500); }
+    .bg-primary-600 { background: var(--primary-600); }
+    .bg-primary-700 { background: var(--primary-700); }
+    .text-primary-600 { color: var(--primary-600); }
+    .border-primary-700 { border-color: var(--primary-700); }
 
 }
 
@@ -116,21 +129,30 @@
 }
 
 @media print {
-    .exclude-print {
-        display: none;
+    * {
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
-    .rm-padding-print {
-        padding: 0;
+    .exclude-print {
+        display: none !important;
     }
 
     @page {
         size: A4;
-        margin: 10mm;
+        margin: 0;
+    }
+
+    .a4-wrapper {
+        padding: var(--print-top, 10mm) var(--print-side, 15mm) var(--print-top, 10mm) var(--print-side, 15mm) !important;
+        box-sizing: border-box !important;
     }
 
     .preview {
         overflow-y: visible !important;
+        max-width: none !important;
+        width: 100% !important;
+        position: static !important;
     }
 
     .preview::after {

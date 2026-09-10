@@ -1,9 +1,15 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import {HighlightMenu} from "react-highlight-menu";
 import {FaAlignCenter, FaAlignLeft, FaAlignRight, FaBold, FaItalic, FaMinus, FaPlus, FaUnderline} from "react-icons/fa";
 import useKeyboardShortcut from "../../../hooks/useKeyboardShortcut";
 
 const ModalHighlightMenu = () => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const formatText = (command, value = null) => {
     document.execCommand(command, false, value);
   };
@@ -28,6 +34,8 @@ const ModalHighlightMenu = () => {
       {icon}
     </button>
   );
+
+  if (!mounted) return null;
 
   return (
     <HighlightMenu

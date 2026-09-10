@@ -1,15 +1,6 @@
 import React from 'react';
 import DateRange from "../../../../utility/DateRange";
-import dynamic from "next/dynamic";
-
-const Droppable = dynamic(
-  () => import("react-beautiful-dnd").then((mod) => mod.Droppable),
-  {ssr: false}
-);
-const Draggable = dynamic(
-  () => import("react-beautiful-dnd").then((mod) => mod.Draggable),
-  {ssr: false}
-);
+import {Droppable, Draggable} from "react-beautiful-dnd";
 
 const WorkExperience = ({item, index}) => {
   return (
