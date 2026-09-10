@@ -2,6 +2,7 @@ import React, {useState, useEffect} from "react";
 import { MdPictureAsPdf, MdSettings } from "react-icons/md";
 
 const PADDING_KEY = "atsresume_print_padding";
+const COLOR_KEY = "atsresume_print_color";
 
 const WinPrint = () => {
   const [padding, setPadding] = useState(() => {
@@ -11,6 +12,12 @@ const WinPrint = () => {
     }
     return { top: "10", side: "15" };
   });
+  const [color, setColor] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(COLOR_KEY) || "#c026d3";
+    }
+    return "#c026d3";
+  });
   const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
@@ -18,6 +25,16 @@ const WinPrint = () => {
     document.documentElement.style.setProperty("--print-top", `${padding.top}mm`);
     document.documentElement.style.setProperty("--print-side", `${padding.side}mm`);
   }, [padding]);
+
+  useEffect(() => {
+    localStorage.setItem(COLOR_KEY, color);
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    document.documentElement.style.setProperty("--primary-500", `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`);
+    document.documentElement.style.setProperty("--primary-600", color);
+    document.documentElement.style.setProperty("--primary-700", `rgb(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)})`);
+  }, [color]);
 
   const print = () => {
     window.print();
@@ -51,23 +68,32 @@ const WinPrint = () => {
             />
             <span className="text-xs text-gray-500">mm</span>
           </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-700 whitespace-nowrap">Color:</label>
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              className="w-8 h-8 rounded cursor-pointer"
+            />
+          </div>
         </div>
       )}
       <div className="flex flex-col items-center gap-1">
-        <button
-          aria-label="Print Settings"
-          className="font-bold rounded-full bg-white text-fuchsia-600 shadow-lg border-2 border-white p-1"
-          onClick={() => setShowSettings(!showSettings)}
-        >
-          <MdSettings className="w-6 h-6" />
-        </button>
-        <button
-          aria-label="Download Resume"
-          className="font-bold rounded-full bg-white text-fuchsia-600 shadow-lg border-2 border-white"
-          onClick={print}
-        >
-          <MdPictureAsPdf className="w-10 h-10" title="Download Resume" />
-        </button>
+      <button
+        aria-label="Print Settings"
+        className="font-bold rounded-full bg-white text-primary-600 shadow-lg border-2 border-white p-1"
+        onClick={() => setShowSettings(!showSettings)}
+      >
+        <MdSettings className="w-6 h-6" />
+      </button>
+      <button
+        aria-label="Download Resume"
+        className="font-bold rounded-full bg-white text-primary-600 shadow-lg border-2 border-white"
+        onClick={print}
+      >
+        <MdPictureAsPdf className="w-10 h-10" title="Download Resume" />
+      </button>
       </div>
     </div>
   );

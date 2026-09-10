@@ -5,7 +5,7 @@ const Header = ({ resumeData, icons }) => {
   return (
     <div className="f-col items-center mb-1">
       {resumeData.profilePicture.length > 0 && (
-        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-fuchsia-700">
+        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-primary-700">
           <img
             src={resumeData.profilePicture}
             alt="profile"
