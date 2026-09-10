@@ -9,7 +9,7 @@
 }
 
 @layer base {
-    
+
     body {
         @apply font-[sans-serif];
     }
@@ -156,7 +156,7 @@
     }
 
     .preview::after {
-        content: "Created using https://atsresume.vercel.app/";
+        content: "Created using https://kamil5b.github.io/atsresume-builder";
         position: fixed;
         bottom: 0;
         right: 0;
